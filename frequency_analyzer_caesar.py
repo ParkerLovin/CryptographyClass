@@ -18,9 +18,23 @@ def correlation_of_frequencies(ciphertext, ciphertext_frequencies):
 				possible_plaintext_char = list(letter_to_number.keys())[possible_plaintext_num]
 				correlation += ciphertext_frequencies[ciphertext[j]] * english_frequencies[possible_plaintext_num]
 		correlations_arr.append(correlation)
-	#print(correlations_arr)
-	index = correlations_arr.index(max(correlations_arr))
-	print("i = " + str(index))
+	return correlations_arr
+	
+def get_probable_key(correlations_arr):
+	probable_key = correlations_arr.index(max(correlations_arr))
+	return probable_key
+	
+def decrypt_helper(ciphertext, key):
+	plaintext = ""
+	for character in ciphertext:
+		if character != " ":
+			char_val = letter_to_number[character]
+			new_char_val = (char_val - key) % 26
+			new_char = list(letter_to_number.keys())[new_char_val]
+			plaintext += new_char
+		else:
+			plaintext += character
+	return plaintext
 
 def decrypt(ciphertext):
 	ciphertext_length = len(ciphertext)
@@ -33,7 +47,11 @@ def decrypt(ciphertext):
 		if char != " ":
 			ciphertext_frequencies[char] = ciphertext_frequencies[char] + 1 / ciphertext_length
 	#print(ciphertext_frequencies)
-	correlation_of_frequencies(ciphertext, ciphertext_frequencies)
+	correlations_arr = correlation_of_frequencies(ciphertext, ciphertext_frequencies)
+	probable_key = get_probable_key(correlations_arr)
+	print("Most likely key: " + str(probable_key))
+	print("Most likely plaintext: " + decrypt_helper(ciphertext, probable_key))
+	
 
 if len(sys.argv) < 2:
 	print("Invalid arguments. Usage: python3 frequency_analyzer_caesar.py CIPHERTEXT")
