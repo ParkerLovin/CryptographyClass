@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 import sys
 
+MAX_KEY_LENGTH = 30
+
 def check_for_copies(ciphertext, substring_size, matches_dict):
 	for i in range(0, len(ciphertext) - substring_size + 1):
 		substring = ciphertext[i:i+substring_size]
-		if not substring in list(matches_dict.keys()):	# Prevents unnecessarily checking for the same substring in multiple iterations.
+		if not substring in matches_dict.keys():	# Prevents unnecessarily checking for the same substring in multiple iterations.
 			positions = []
 			start = i
 			while True:
@@ -19,14 +21,27 @@ def check_for_copies(ciphertext, substring_size, matches_dict):
 	#print(matches_dict)
 	return matches_dict
 
+def get_distance_between_repeats(matches):
+	all_distances = []
+	for substring in matches.keys():
+		#distances_for_this_substring = []
+		for i in range(1, len(matches[substring])):
+			all_distances.append(matches[substring][i] - matches[substring][0])	# This may need to be reworked. If there are 3+ matches for a substring, this would account for the distance between 0 and 1 and between 0 and 2, but not between 1 and 2.
+	return all_distances
+			
+
 def decrypt(ciphertext):
 	matches = {}
-	for i in range(4, 1, -1):
+	for i in range(MAX_KEY_LENGTH, 1, -1):
 		matches = check_for_copies(ciphertext, i, matches)
-	print(matches)
+	distances = get_distance_between_repeats(matches)
+	#print(matches)
+	#print()
+	distances.sort(reverse=True)
+	print(distances)
 
 if len(sys.argv) < 2:
         print("Invalid arguments. Usage: python3 frequency_analyzer_vigenere.py \"CIPHERTEXT\"")
 else:
         ciphertext = sys.argv[1]
-        decrypt(ciphertext.lower().strip())
+        decrypt(ciphertext.lower().replace(" ",""))
