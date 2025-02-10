@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import sys
+import math
 
 MAX_KEY_LENGTH = 30
 ALPHABET = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
@@ -30,6 +31,24 @@ def get_distance_between_repeats(matches):
 			all_distances.append(matches[substring][i] - matches[substring][0])	# This may need to be reworked. If there are 3+ matches for a substring, this would account for the distance between 0 and 1 and between 0 and 2, but not between 1 and 2.
 	return all_distances
 
+def factor(num):
+	n = num
+	factors = []
+	for i in range(2, n):
+		while n % i == 0:
+			factors.append(i)
+			n = n // i
+	if n == num:	# In this case, num is prime.
+		factors = [num]
+	return factors
+			
+
+def get_factors_of_distances(distances):
+	all_factors = []
+	for d in distances:
+		all_factors += factor(d)
+	return all_factors
+
 def calc_index_of_coincidence(ciphertext):
 	n = len(ciphertext)
 	summation = 0
@@ -45,9 +64,10 @@ def decrypt(ciphertext):
 	distances = get_distance_between_repeats(matches)
 	#print(matches)
 	#print()
-	distances.sort(reverse=True)
-	print(distances)
-	
+	#distances.sort(reverse=True)
+	#print(distances)
+	factors = get_factors_of_distances(distances)
+	print(factors)	
 
 if len(sys.argv) < 2:
         print("Invalid arguments. Usage: python3 frequency_analyzer_vigenere.py \"CIPHERTEXT\"")
