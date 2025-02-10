@@ -2,6 +2,7 @@
 import sys
 
 MAX_KEY_LENGTH = 30
+ALPHABET = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
 
 def check_for_copies(ciphertext, substring_size, matches_dict):
 	for i in range(0, len(ciphertext) - substring_size + 1):
@@ -28,7 +29,14 @@ def get_distance_between_repeats(matches):
 		for i in range(1, len(matches[substring])):
 			all_distances.append(matches[substring][i] - matches[substring][0])	# This may need to be reworked. If there are 3+ matches for a substring, this would account for the distance between 0 and 1 and between 0 and 2, but not between 1 and 2.
 	return all_distances
-			
+
+def calc_index_of_coincidence(ciphertext):
+	n = len(ciphertext)
+	summation = 0
+	for letter in ALPHABET:
+		ni = ciphertext.count(letter)
+		summation += ni * (ni - 1)
+	return summation / (n * (n - 1))
 
 def decrypt(ciphertext):
 	matches = {}
@@ -39,6 +47,7 @@ def decrypt(ciphertext):
 	#print()
 	distances.sort(reverse=True)
 	print(distances)
+	
 
 if len(sys.argv) < 2:
         print("Invalid arguments. Usage: python3 frequency_analyzer_vigenere.py \"CIPHERTEXT\"")
