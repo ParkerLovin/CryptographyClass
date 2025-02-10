@@ -57,6 +57,26 @@ def calc_index_of_coincidence(ciphertext):
 		summation += ni * (ni - 1)
 	return summation / (n * (n - 1))
 
+def handle_alphabets(ciphertext, test_len):
+	alphabets = []
+	for i in range(test_len):
+		a = []
+		j = 0
+		while i + test_len * j < len(ciphertext):	# Prevents attempts to access out-of-bounds index.
+			a.append(ciphertext[i + test_len * j])
+			j += 1
+		alphabets.append(a)
+	print(alphabets)
+	
+def decryption_loop(ciphertext, factors):
+	looping = True
+	while looping:
+		print(factors)
+		test_len = int(input("What integer would you like to use as your key? It is suggested that you use one of your most common factors (or a product of your most common factors). "))
+		handle_alphabets(ciphertext, test_len)
+		looping = input("Would you like to try again with a different key? Y/N ") == "Y"
+		
+
 def decrypt(ciphertext):
 	matches = {}
 	for i in range(MAX_KEY_LENGTH, 1, -1):
@@ -67,7 +87,8 @@ def decrypt(ciphertext):
 	#distances.sort(reverse=True)
 	#print(distances)
 	factors = get_factors_of_distances(distances)
-	print(factors)	
+	factors.sort()
+	decryption_loop(ciphertext, factors)
 
 if len(sys.argv) < 2:
         print("Invalid arguments. Usage: python3 frequency_analyzer_vigenere.py \"CIPHERTEXT\"")
