@@ -116,8 +116,37 @@ def decryption_loop(ciphertext, factors):
 		test_len = int(input("What integer would you like to use as your key? It is suggested that you use one of your most common factors (or a product of your most common factors). "))
 		possible_key = handle_alphabets(ciphertext, test_len)
 		print("Possible key: " + possible_key)
-		print(decrypt_helper(ciphertext, possible_key))
+		possible_plaintext = decrypt_helper(ciphertext, possible_key)
+		print(possible_plaintext)
 		looping = input("Would you like to try again with a different key? Y/N ") == "Y"
+	print("\nYour current plaintext is: " + possible_plaintext)
+	correcting = input("\nWould you like to correct any flaws in the plaintext? Y/N ") == "Y"
+	while correcting:
+		print("1) See the locations breakdown for characters in the current plaintext")
+		print("2) Choose a character to modify")
+		print("3) Finalize result")
+		choice = input("Please enter 1, 2, or 3: ")
+		if choice == "1":
+			for i in range(len(possible_plaintext)):
+				print(str(i) + ": " + possible_plaintext[i])
+		elif choice == "2":
+			index = int(input("Enter the index of the character you would like to replace. "))
+			current_char = possible_plaintext[index]
+			print("The character \'" + current_char + "\' is at this index.")
+			replacement = input("What character would you like to insert in place of \'" + current_char + "\'? ").strip().lower()
+			replacement = LETTER_TO_NUMBER[replacement]
+			key_index = index % len(possible_key)
+			key_char_diff = replacement - LETTER_TO_NUMBER[current_char]
+			new_key_char_val = (LETTER_TO_NUMBER[possible_key[key_index]] + key_char_diff) % 26
+			possible_key = list(possible_key)	# Convert key to list to allow changing characters.
+			possible_key[key_index] = ALPHABET[new_key_char_val]
+			possible_key = "".join(possible_key)
+			print(possible_key)
+			possible_plaintext = decrypt_helper(ciphertext, possible_key)
+			print(possible_plaintext)
+		elif choice == "3":
+			correcting = False
+		
 		
 
 def decrypt(ciphertext):
@@ -125,10 +154,6 @@ def decrypt(ciphertext):
 	for i in range(MAX_KEY_LENGTH, 1, -1):
 		matches = check_for_copies(ciphertext, i, matches)
 	distances = get_distance_between_repeats(matches)
-	#print(matches)
-	#print()
-	#distances.sort(reverse=True)
-	#print(distances)
 	factors = get_factors_of_distances(distances)
 	factors.sort()
 	decryption_loop(ciphertext, factors)
