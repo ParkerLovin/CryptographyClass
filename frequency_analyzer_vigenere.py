@@ -1,4 +1,9 @@
 #!/usr/bin/python3
+
+# To-do:
+# - Incorporate index of coincidence
+# - Improve comments
+
 import sys
 import math
 
@@ -19,15 +24,12 @@ def check_for_copies(ciphertext, substring_size, matches_dict):
 				positions.append(start)
 				start += substring_size
 			if len(positions) > 1:
-				#print(positions)
 				matches_dict[substring] = positions
-	#print(matches_dict)
 	return matches_dict
 
 def get_distance_between_repeats(matches):
 	all_distances = []
 	for substring in matches.keys():
-		#distances_for_this_substring = []
 		for i in range(1, len(matches[substring])):
 			all_distances.append(matches[substring][i] - matches[substring][0])	# This may need to be reworked. If there are 3+ matches for a substring, this would account for the distance between 0 and 1 and between 0 and 2, but not between 1 and 2.
 	return all_distances
@@ -53,7 +55,7 @@ def get_factors_of_distances(distances):
 def calc_index_of_coincidence(ciphertext):
 	n = len(ciphertext)
 	summation = 0
-	for letter in ALPHABET:
+	for letter in LETTER_TO_NUMBER.keys():
 		ni = ciphertext.count(letter)
 		summation += ni * (ni - 1)
 	return summation / (n * (n - 1))
@@ -75,8 +77,7 @@ def find_key_for_alphabet(alphabet):
 				correlation += alphabet_frequencies[cipher_char] * english_frequencies[possible_plaintext_num]  # Update the correlation value based on the formula f(c)f’(e – i)
 		correlations_arr.append(correlation)
 	probable_key = correlations_arr.index(max(correlations_arr))  # Get the most likely key.
-	#print("Most likely key: " + str(probable_key))
-	return ALPHABET[probable_key]
+	return list(LETTER_TO_NUMBER.keys())[probable_key]
 
 def handle_alphabets(ciphertext, test_len):
 	alphabets = []
@@ -87,7 +88,6 @@ def handle_alphabets(ciphertext, test_len):
 			a.append(ciphertext[i + test_len * j])
 			j += 1
 		alphabets.append(a)
-	#print(alphabets)
 	possible_key = ""
 	for a in alphabets:
 		possible_key += find_key_for_alphabet(a)
@@ -99,7 +99,7 @@ def decrypt_helper(ciphertext, key):
 	for character in ciphertext:
 		if character != " ":
 			char_val = LETTER_TO_NUMBER[character]
-			shift = ALPHABET.index(key[key_index])
+			shift = LETTER_TO_NUMBER[key[key_index]]
 			new_char_val = (char_val - shift) % 26
 			new_char = list(LETTER_TO_NUMBER.keys())[new_char_val]
 			plaintext += new_char
@@ -112,40 +112,44 @@ def decrypt_helper(ciphertext, key):
 def decryption_loop(ciphertext, factors):
 	looping = True
 	while looping:
+		print("\nThis program has calculated the distance between repeats in the ciphertext, then factored these distances. Here are the factors: ")
 		print(factors)
-		test_len = int(input("What integer would you like to use as your key? It is suggested that you use one of your most common factors (or a product of your most common factors). "))
+		test_len = int(input("\nWhat integer would you like to use as your key? It is suggested that you use one of your most common factors (or a product of your most common factors). "))
 		possible_key = handle_alphabets(ciphertext, test_len)
-		print("Possible key: " + possible_key)
+		print("\nPossible key: " + possible_key)
 		possible_plaintext = decrypt_helper(ciphertext, possible_key)
-		print(possible_plaintext)
-		looping = input("Would you like to try again with a different key? Y/N ") == "Y"
-	print("\nYour current plaintext is: " + possible_plaintext)
+		print("Possible plaintext: " + possible_plaintext)
+		looping = input("\nWould you like to try again with a different key? Y/N ") == "Y"
+	print("\n\n\nYour current plaintext is: " + possible_plaintext)
 	correcting = input("\nWould you like to correct any flaws in the plaintext? Y/N ") == "Y"
 	while correcting:
-		print("1) See the locations breakdown for characters in the current plaintext")
+		print("\n1) See the locations breakdown for characters in the current plaintext")
 		print("2) Choose a character to modify")
-		print("3) Finalize result")
+		print("3) Finalize result\n")
 		choice = input("Please enter 1, 2, or 3: ")
 		if choice == "1":
 			for i in range(len(possible_plaintext)):
 				print(str(i) + ": " + possible_plaintext[i])
 		elif choice == "2":
-			index = int(input("Enter the index of the character you would like to replace. "))
+			index = int(input("\nEnter the index of the character you would like to replace. "))
 			current_char = possible_plaintext[index]
-			print("The character \'" + current_char + "\' is at this index.")
+			print("\nThe character \'" + current_char + "\' is at this index.")
 			replacement = input("What character would you like to insert in place of \'" + current_char + "\'? ").strip().lower()
 			replacement = LETTER_TO_NUMBER[replacement]
 			key_index = index % len(possible_key)
 			key_char_diff = replacement - LETTER_TO_NUMBER[current_char]
 			new_key_char_val = (LETTER_TO_NUMBER[possible_key[key_index]] + key_char_diff) % 26
 			possible_key = list(possible_key)	# Convert key to list to allow changing characters.
-			possible_key[key_index] = ALPHABET[new_key_char_val]
+			possible_key[key_index] = list(LETTER_TO_NUMBER.keys())[new_key_char_val]
 			possible_key = "".join(possible_key)
-			print(possible_key)
+			print("\nUpdated key: " + possible_key)
 			possible_plaintext = decrypt_helper(ciphertext, possible_key)
-			print(possible_plaintext)
+			print("\nUpdated plaintext: " + possible_plaintext)
 		elif choice == "3":
 			correcting = False
+	print("\n" * 4)
+	print("Final key: " + possible_key)
+	print("\nFinal plaintext: " + possible_plaintext)
 		
 		
 
