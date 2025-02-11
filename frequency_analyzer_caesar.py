@@ -7,9 +7,9 @@
 
 import sys
 
-letter_to_number = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8, 'j': 9, 'k': 10, 'l': 11, 'm': 12, 'n': 13, 'o': 14, 'p': 15, 'q': 16, 'r': 17, 's': 18, 't': 19, 'u': 20, 'v': 21, 'w': 22, 'x': 23, 'y': 24, 'z': 25}	# Dictionary used to convert letters to numbers
+LETTER_TO_NUMBER = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8, 'j': 9, 'k': 10, 'l': 11, 'm': 12, 'n': 13, 'o': 14, 'p': 15, 'q': 16, 'r': 17, 's': 18, 't': 19, 'u': 20, 'v': 21, 'w': 22, 'x': 23, 'y': 24, 'z': 25}	# Dictionary used to convert letters to numbers
 
-english_frequencies = [0.08, 0.015, 0.03, 0.04, 0.13, 0.02, 0.015, 0.06, 0.065, 0.005, 0.005, 0.035, 0.03, 0.07, 0.08, 0.02, 0.002, 0.065, 0.06, 0.09, 0.03, 0.01, 0.015, 0.005, 0.02, 0.002]	# Note that index 0 corresponds to 'a', 1 to 'b', and so on.
+ENGLISH_FREQUENCIES = [0.08, 0.015, 0.03, 0.04, 0.13, 0.02, 0.015, 0.06, 0.065, 0.005, 0.005, 0.035, 0.03, 0.07, 0.08, 0.02, 0.002, 0.065, 0.06, 0.09, 0.03, 0.01, 0.015, 0.005, 0.02, 0.002]	# Note that index 0 corresponds to 'a', 1 to 'b', and so on.
 
 # This function returns an array with each value representing a correlation of frequencies for a given key. The key corresponds to the value of the index.
 def correlation_of_frequencies(ciphertext, ciphertext_frequencies):
@@ -18,9 +18,9 @@ def correlation_of_frequencies(ciphertext, ciphertext_frequencies):
 		correlation = 0
 		for cipher_char in ciphertext:	# For each character in the ciphertext
 			if cipher_char != " ":
-				possible_plaintext_num = (letter_to_number[cipher_char] - i) % 26	# Calculate the possible plaintext character value for the hypothetical key, i
-				possible_plaintext_char = list(letter_to_number.keys())[possible_plaintext_num]
-				correlation += ciphertext_frequencies[cipher_char] * english_frequencies[possible_plaintext_num]	# Update the correlation value based on the formula f(c)f’(e – i)
+				possible_plaintext_num = (LETTER_TO_NUMBER[cipher_char] - i) % 26	# Calculate the possible plaintext character value for the hypothetical key, i
+				possible_plaintext_char = list(LETTER_TO_NUMBER.keys())[possible_plaintext_num]
+				correlation += ciphertext_frequencies[cipher_char] * ENGLISH_FREQUENCIES[possible_plaintext_num]	# Update the correlation value based on the formula f(c)f’(e – i)
 		correlations_arr.append(correlation)
 	return correlations_arr
 
@@ -34,9 +34,9 @@ def decrypt_helper(ciphertext, key):
 	plaintext = ""
 	for character in ciphertext:
 		if character != " ":
-			char_val = letter_to_number[character]
+			char_val = LETTER_TO_NUMBER[character]
 			new_char_val = (char_val - key) % 26
-			new_char = list(letter_to_number.keys())[new_char_val]
+			new_char = list(LETTER_TO_NUMBER.keys())[new_char_val]
 			plaintext += new_char
 		else:	# Spaces are not affected by the key.
 			plaintext += character
