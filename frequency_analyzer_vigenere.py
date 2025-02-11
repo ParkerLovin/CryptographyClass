@@ -4,6 +4,7 @@
 Author: Parker Lovin
 Date: 2/11/2025
 Course: CSC-4575-001
+Purpose: This program decrypts a Vigenere cipher by dividing ciphertext into alphabets and performing frequency analysis on each alphabet.
 """
 
 import sys
