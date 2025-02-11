@@ -1,39 +1,46 @@
 #!/usr/bin/python3
 
-# To-do:
-# - Incorporate index of coincidence
-# - Improve comments
+"""
+Author: Parker Lovin
+Date: 2/11/2025
+Course: CSC-4575-001
+"""
 
 import sys
-import math
 
-MAX_KEY_LENGTH = 30
-ALPHABET = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-LETTER_TO_NUMBER = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8, 'j': 9, 'k': 10, 'l': 11, 'm': 12, 'n': 13, 'o': 14, 'p': 15, 'q': 16, 'r': 17, 's': 18, 't': 19, 'u': 20, 'v': 21, 'w': 22, 'x': 23, 'y': 24, 'z': 25}  # Dictionary used to convert letters to numbers
+MAX_KEY_LENGTH = 30	# Assumes the key is 30 characters or shorter to save time; can be modified if necessary.
+LETTER_TO_NUMBER = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8, 'j': 9, 'k': 10, 'l': 11, 'm': 12, 'n': 13, 'o': 14, 'p': 15, 'q': 16, 'r': 17, 's': 18, 't': 19, 'u': 20,
+	'v': 21, 'w': 22, 'x': 23, 'y': 24, 'z': 25}  # Dictionary used to convert letters to numbers
 
+# Function to check for duplicate substrings of a given length, which helps in finding key length.
+# Duplicates are returned in the form of a dictionary.
 def check_for_copies(ciphertext, substring_size, matches_dict):
 	for i in range(0, len(ciphertext) - substring_size + 1):
 		substring = ciphertext[i:i+substring_size]
 		if not substring in matches_dict.keys():	# Prevents unnecessarily checking for the same substring in multiple iterations.
 			positions = []
-			start = i
+			start = i	# This variable tracks the current position so that no instance of a substring is double counted.
 			while True:
 				start = ciphertext.find(substring, start)
-				if start == -1:
+				if start == -1:	# Handle the event in which no more duplicates of this substring can be found.
 					break
 				positions.append(start)
 				start += substring_size
 			if len(positions) > 1:
-				matches_dict[substring] = positions
+				matches_dict[substring] = positions	# The key is the substring, and the value is a list of positions for that substring.
 	return matches_dict
 
+# Takes in a dictionary of matches (repeat substring info) and outputs the distances between matches.
 def get_distance_between_repeats(matches):
 	all_distances = []
+	# For each substring in the dictionary, calculate the distances between the substring's instances.
 	for substring in matches.keys():
-		for i in range(1, len(matches[substring])):
-			all_distances.append(matches[substring][i] - matches[substring][0])	# This may need to be reworked. If there are 3+ matches for a substring, this would account for the distance between 0 and 1 and between 0 and 2, but not between 1 and 2.
+		for i in range(len(matches[substring])):
+			for j in range(i + 1, len(matches[substring])):	# Starting this loop at "i" prevents double counting.
+				all_distances.append(matches[substring][j] - matches[substring][i])
 	return all_distances
 
+# Simple function to factor an integer.
 def factor(num):
 	n = num
 	factors = []
@@ -43,30 +50,34 @@ def factor(num):
 			n = n // i
 	if n == num:	# In this case, num is prime.
 		factors = [num]
-	return factors
-			
+	return factors			
 
+# For every distance (between identical substrings), factor that distance using the factor() helper function.
 def get_factors_of_distances(distances):
 	all_factors = []
 	for d in distances:
 		all_factors += factor(d)
 	return all_factors
 
+# Uses the formula sum(ni * (ni-1)) / (n * n-1) to calculate index of coincidence for a ciphertext/alphabet.
 def calc_index_of_coincidence(ciphertext):
 	n = len(ciphertext)
 	summation = 0
-	for letter in LETTER_TO_NUMBER.keys():
+	for letter in LETTER_TO_NUMBER.keys():	# Account for all 26 possible letters.
 		ni = ciphertext.count(letter)
 		summation += ni * (ni - 1)
-	return summation / (n * (n - 1))
-	
+	return str(summation / (n * (n - 1)))
+
+# For a given alphabet, find the likely key. This is similar to solving a shift cipher.	
 def find_key_for_alphabet(alphabet):
-	english_frequencies = [0.08, 0.015, 0.03, 0.04, 0.13, 0.02, 0.015, 0.06, 0.065, 0.005, 0.005, 0.035, 0.03, 0.07, 0.08, 0.02, 0.002, 0.065, 0.06, 0.09, 0.03, 0.01, 0.015, 0.005, 0.02, 0.002]
+	english_frequencies = [0.08, 0.015, 0.03, 0.04, 0.13, 0.02, 0.015, 0.06, 0.065, 0.005, 0.005, 0.035, 
+		0.03, 0.07, 0.08, 0.02, 0.002, 0.065, 0.06, 0.09, 0.03, 0.01, 0.015, 0.005, 0.02, 0.002]	# A-Z letter frequencies in English.
 	alphabet_length = len(alphabet)
-	alphabet_frequencies = {'a': 0, 'b': 0, 'c': 0, 'd': 0, 'e': 0, 'f': 0, 'g': 0, 'h': 0, 'i': 0, 'j': 0, 'k': 0, 'l': 0, 'm': 0, 'n': 0, 'o': 0, 'p': 0, 'q': 0, 'r': 0, 's': 0, 't': 0, 'u': 0, 'v': 0, 'w': 0, 'x': 0, 'y': 0, 'z': 0}
+	alphabet_frequencies = {'a': 0, 'b': 0, 'c': 0, 'd': 0, 'e': 0, 'f': 0, 'g': 0, 'h': 0, 'i': 0, 'j': 0,
+		'k': 0, 'l': 0, 'm': 0, 'n': 0, 'o': 0, 'p': 0, 'q': 0, 'r': 0, 's': 0, 't': 0, 'u': 0, 'v': 0, 'w': 0, 'x': 0, 'y': 0, 'z': 0}	# Keep track of letter frequencies in this particular alphabet.
+	
 	for char in alphabet:
-		if char != " ":
-			alphabet_frequencies[char] = alphabet_frequencies[char] + 1 / alphabet_length
+		alphabet_frequencies[char] = alphabet_frequencies[char] + 1 / alphabet_length
 	correlations_arr = []
 	for i in range(26):  # For each possible key value, 0-25
 		correlation = 0
@@ -88,6 +99,7 @@ def handle_alphabets(ciphertext, test_len):
 			a.append(ciphertext[i + test_len * j])
 			j += 1
 		alphabets.append(a)
+		print("Index of coincidence for alphabet " + str(i) + ":     " + calc_index_of_coincidence("".join(a)))
 	possible_key = ""
 	for a in alphabets:
 		possible_key += find_key_for_alphabet(a)
@@ -115,6 +127,7 @@ def decryption_loop(ciphertext, factors):
 		print("\nThis program has calculated the distance between repeats in the ciphertext, then factored these distances. Here are the factors: ")
 		print(factors)
 		test_len = int(input("\nWhat integer would you like to use as your key? It is suggested that you use one of your most common factors (or a product of your most common factors). "))
+		print()
 		possible_key = handle_alphabets(ciphertext, test_len)
 		print("\nPossible key: " + possible_key)
 		possible_plaintext = decrypt_helper(ciphertext, possible_key)
