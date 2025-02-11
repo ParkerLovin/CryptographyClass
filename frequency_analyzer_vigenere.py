@@ -4,6 +4,7 @@ import math
 
 MAX_KEY_LENGTH = 30
 ALPHABET = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+LETTER_TO_NUMBER = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8, 'j': 9, 'k': 10, 'l': 11, 'm': 12, 'n': 13, 'o': 14, 'p': 15, 'q': 16, 'r': 17, 's': 18, 't': 19, 'u': 20, 'v': 21, 'w': 22, 'x': 23, 'y': 24, 'z': 25}  # Dictionary used to convert letters to numbers
 
 def check_for_copies(ciphertext, substring_size, matches_dict):
 	for i in range(0, len(ciphertext) - substring_size + 1):
@@ -56,6 +57,26 @@ def calc_index_of_coincidence(ciphertext):
 		ni = ciphertext.count(letter)
 		summation += ni * (ni - 1)
 	return summation / (n * (n - 1))
+	
+def find_key_for_alphabet(alphabet):
+	english_frequencies = [0.08, 0.015, 0.03, 0.04, 0.13, 0.02, 0.015, 0.06, 0.065, 0.005, 0.005, 0.035, 0.03, 0.07, 0.08, 0.02, 0.002, 0.065, 0.06, 0.09, 0.03, 0.01, 0.015, 0.005, 0.02, 0.002]
+	alphabet_length = len(alphabet)
+	alphabet_frequencies = {'a': 0, 'b': 0, 'c': 0, 'd': 0, 'e': 0, 'f': 0, 'g': 0, 'h': 0, 'i': 0, 'j': 0, 'k': 0, 'l': 0, 'm': 0, 'n': 0, 'o': 0, 'p': 0, 'q': 0, 'r': 0, 's': 0, 't': 0, 'u': 0, 'v': 0, 'w': 0, 'x': 0, 'y': 0, 'z': 0}
+	for char in alphabet:
+		if char != " ":
+			alphabet_frequencies[char] = alphabet_frequencies[char] + 1 / alphabet_length
+	correlations_arr = []
+	for i in range(26):  # For each possible key value, 0-25
+		correlation = 0
+		for cipher_char in alphabet:  # For each character in the alphabet
+			if cipher_char != " ":
+				possible_plaintext_num = (LETTER_TO_NUMBER[cipher_char] - i) % 26  # Calculate the possible plaintext character value for the hypothetical key, i
+				possible_plaintext_char = list(LETTER_TO_NUMBER.keys())[possible_plaintext_num]
+				correlation += alphabet_frequencies[cipher_char] * english_frequencies[possible_plaintext_num]  # Update the correlation value based on the formula f(c)f’(e – i)
+		correlations_arr.append(correlation)
+	probable_key = correlations_arr.index(max(correlations_arr))  # Get the most likely key.
+	#print("Most likely key: " + str(probable_key))
+	return ALPHABET[probable_key]
 
 def handle_alphabets(ciphertext, test_len):
 	alphabets = []
@@ -66,14 +87,36 @@ def handle_alphabets(ciphertext, test_len):
 			a.append(ciphertext[i + test_len * j])
 			j += 1
 		alphabets.append(a)
-	print(alphabets)
+	#print(alphabets)
+	possible_key = ""
+	for a in alphabets:
+		possible_key += find_key_for_alphabet(a)
+	return possible_key
+
+def decrypt_helper(ciphertext, key):
+	plaintext = ""
+	key_index = 0
+	for character in ciphertext:
+		if character != " ":
+			char_val = LETTER_TO_NUMBER[character]
+			shift = ALPHABET.index(key[key_index])
+			new_char_val = (char_val - shift) % 26
+			new_char = list(LETTER_TO_NUMBER.keys())[new_char_val]
+			plaintext += new_char
+			key_index += 1
+			key_index = key_index % len(key)
+		else:	# Spaces are not affected by the key.
+			plaintext += character
+	return plaintext
 	
 def decryption_loop(ciphertext, factors):
 	looping = True
 	while looping:
 		print(factors)
 		test_len = int(input("What integer would you like to use as your key? It is suggested that you use one of your most common factors (or a product of your most common factors). "))
-		handle_alphabets(ciphertext, test_len)
+		possible_key = handle_alphabets(ciphertext, test_len)
+		print("Possible key: " + possible_key)
+		print(decrypt_helper(ciphertext, possible_key))
 		looping = input("Would you like to try again with a different key? Y/N ") == "Y"
 		
 
