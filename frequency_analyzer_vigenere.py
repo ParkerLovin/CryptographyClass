@@ -12,6 +12,8 @@ import sys
 MAX_KEY_LENGTH = 30	# Assumes the key is 30 characters or shorter to save time; can be modified if necessary.
 LETTER_TO_NUMBER = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8, 'j': 9, 'k': 10, 'l': 11, 'm': 12, 'n': 13, 'o': 14, 'p': 15, 'q': 16, 'r': 17, 's': 18, 't': 19, 'u': 20,
 	'v': 21, 'w': 22, 'x': 23, 'y': 24, 'z': 25}  # Dictionary used to convert letters to numbers
+ENGLISH_FREQUENCIES = [0.08, 0.015, 0.03, 0.04, 0.13, 0.02, 0.015, 0.06, 0.065, 0.005, 0.005, 0.035, 
+		0.03, 0.07, 0.08, 0.02, 0.002, 0.065, 0.06, 0.09, 0.03, 0.01, 0.015, 0.005, 0.02, 0.002]	# A-Z letter frequencies in English.
 
 # Function to check for duplicate substrings of a given length, which helps in finding key length.
 # Duplicates are returned in the form of a dictionary.
@@ -45,12 +47,10 @@ def get_distance_between_repeats(matches):
 def factor(num):
 	n = num
 	factors = []
-	for i in range(2, n):
+	for i in range(2, n + 1):
 		while n % i == 0:
 			factors.append(i)
 			n = n // i
-	if n == num:	# In this case, num is prime.
-		factors = [num]
 	return factors			
 
 # For every distance (between identical substrings), factor that distance using the factor() helper function.
@@ -71,8 +71,6 @@ def calc_index_of_coincidence(ciphertext):
 
 # For a given alphabet, find the likely key. This is similar to solving a shift cipher.	
 def find_key_for_alphabet(alphabet):
-	english_frequencies = [0.08, 0.015, 0.03, 0.04, 0.13, 0.02, 0.015, 0.06, 0.065, 0.005, 0.005, 0.035, 
-		0.03, 0.07, 0.08, 0.02, 0.002, 0.065, 0.06, 0.09, 0.03, 0.01, 0.015, 0.005, 0.02, 0.002]	# A-Z letter frequencies in English.
 	alphabet_length = len(alphabet)
 	alphabet_frequencies = {'a': 0, 'b': 0, 'c': 0, 'd': 0, 'e': 0, 'f': 0, 'g': 0, 'h': 0, 'i': 0, 'j': 0,
 		'k': 0, 'l': 0, 'm': 0, 'n': 0, 'o': 0, 'p': 0, 'q': 0, 'r': 0, 's': 0, 't': 0, 'u': 0, 'v': 0, 'w': 0, 'x': 0, 'y': 0, 'z': 0}	# Keep track of letter frequencies in this particular alphabet.
@@ -88,7 +86,7 @@ def find_key_for_alphabet(alphabet):
 			if cipher_char != " ":
 				possible_plaintext_num = (LETTER_TO_NUMBER[cipher_char] - i) % 26  # Calculate the plaintext character value for the hypothetical key, i
 				possible_plaintext_char = list(LETTER_TO_NUMBER.keys())[possible_plaintext_num]
-				correlation += alphabet_frequencies[cipher_char] * english_frequencies[possible_plaintext_num]  # Update the correlation value based on the formula f(c)f’(e – i)
+				correlation += alphabet_frequencies[cipher_char] * ENGLISH_FREQUENCIES[possible_plaintext_num]  # Update the correlation value based on the formula f(c)f’(e – i)
 		correlations_arr.append(correlation)
 	probable_key = correlations_arr.index(max(correlations_arr))  # Get the most likely key.
 	return list(LETTER_TO_NUMBER.keys())[probable_key]	# Return the key in the form of a letter.
@@ -135,6 +133,8 @@ def decrypt_helper(ciphertext, key):
 # Input: the original ciphertext and the factors calculated for the distances between substrings.	
 def decryption_loop(ciphertext, factors):
 	looping = True
+	possible_key = ""
+	possible_plaintext = ""
 	while looping:
 		# Allow the user to view the distance factors and make a decision about the key length.
 		print("\nThis program has calculated the distance between repeats in the ciphertext, then factored these distances. Here are the factors: ")
